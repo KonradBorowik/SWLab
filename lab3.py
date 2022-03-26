@@ -83,7 +83,35 @@ def todo_2():
 
 
 def todo_3():
+    mcqueen = cv2.imread(r'pictures/mcqueen.jpg')
+    mcqueen_grey = cv2.cvtColor(mcqueen, cv2.COLOR_BGR2GRAY)
+    mcqueen_grey = cv2.resize(mcqueen_grey, (0, 0), fx=0.5, fy=0.5)
+    mcqueen_grey[:, 0::3] = 255
 
+    kernel = np.zeros((3, 3))
+
+    for y in mcqueen_grey[:]:
+        upper_level = mcqueen_grey[y - 1]
+        current_level = mcqueen_grey[y]
+        lower_level = mcqueen_grey[y + 1]
+
+        for x in mcqueen_grey[, :]:
+            up_l = [upper_level, x - 1]
+            up_m = [upper_level, x]
+            up_r = [upper_level, x + 1]
+
+            cur_l = [current_level, x - 1]
+            cur_m = [current_level, x]
+            cur_r = [current_level, x + 1]
+
+            low_l = [lower_level, x - 1]
+            low_m = [lower_level, x]
+            low_r = [lower_level, x + 1]
+
+
+
+    cv2.imshow('maklini', mcqueen_grey)
+    cv2.waitKey()
 
 
 def main():
