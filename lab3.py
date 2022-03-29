@@ -1,5 +1,7 @@
 import cv2
-import numpy as np
+import time
+
+import numpy
 
 
 def big_boy_func(value):
@@ -84,33 +86,59 @@ def todo_2():
 
 def todo_3():
     mcqueen = cv2.imread(r'pictures/mcqueen.jpg')
-    mcqueen_grey = cv2.cvtColor(mcqueen, cv2.COLOR_BGR2GRAY)
-    mcqueen_grey = cv2.resize(mcqueen_grey, (0, 0), fx=0.5, fy=0.5)
-    mcqueen_grey[:, 0::3] = 255
+    mcqueen_resize = cv2.resize(mcqueen, (0, 0), fx=0.5, fy=0.5)
+    mcqueen_grey = cv2.cvtColor(mcqueen_resize, cv2.COLOR_BGR2GRAY)
+    mcqueen_stripes = mcqueen_grey.copy()
+    mcqueen_stripes[:, ::3] = 255
 
-    kernel = np.zeros((3, 3))
+    # my filter
+    my_filter_time_start = time.perf_counter()
+    col, row = mcqueen_stripes[1:-1,1:-1].shape
 
-    for y in mcqueen_grey[:]:
-        upper_level = mcqueen_grey[y - 1]
-        current_level = mcqueen_grey[y]
-        lower_level = mcqueen_grey[y + 1]
+    print(mcqueen_stripes[1:-1,1:-1].shape)
+    print(col)
+    print(row)
 
-        for x in mcqueen_grey[, :]:
-            up_l = [upper_level, x - 1]
-            up_m = [upper_level, x]
-            up_r = [upper_level, x + 1]
+    for y in range(col):
+        if y == 0:
+            continue
+        elif y == col:
+            break
 
-            cur_l = [current_level, x - 1]
-            cur_m = [current_level, x]
-            cur_r = [current_level, x + 1]
+        for x in range(row):
+            if x == 0:
+                continue
+            elif x == row:
+                break
 
-            low_l = [lower_level, x - 1]
-            low_m = [lower_level, x]
-            low_r = [lower_level, x + 1]
+            ul = int(mcqueen_stripes[y-1, x-1])
+            um = int(mcqueen_stripes[y-1, x])
+            ur = int(mcqueen_stripes[y-1, x+1])
+            cl = int(mcqueen_stripes[y, x-1])
+            cm = int(mcqueen_stripes[y, x])
+            cr = int(mcqueen_stripes[y, x+1])
+            ll = int(mcqueen_stripes[y+1, x-1])
+            lm = int(mcqueen_stripes[y+1, x])
+            lr = int(mcqueen_stripes[y+1, x+1])
+            mean_pixel_value = int((ul+um+ur+cl+cm+cr+ll+lm+lr)/9)
+            mcqueen_stripes[y][x] = mean_pixel_value
 
+    my_filter_time_stop = time.perf_counter()
 
+    # built-in filter - blur
+    blur_timer_start = time.perf_counter()
+    mcqueen_blur = cv2.blur(mcqueen_stripes, (3, 3))
+    blur_timer_stop = time.perf_counter()
 
-    cv2.imshow('maklini', mcqueen_grey)
+    # built-in filter - filter2d
+    filterTWOd_timer_start = time.perf_counter()
+    mcqueen_filterTWOd = cv2.filter2D(mcqueen_stripes, ddepth=cv2.CV_32F, kernel=(3,3))
+    filterTWOd_timer_stop = time.perf_counter()
+
+    # show outcome
+    cv2.imshow(f'filter2D, time: {filterTWOd_timer_stop - filterTWOd_timer_start}', mcqueen_filterTWOd)
+    cv2.imshow(f'blur, time: {blur_timer_stop - blur_timer_start}', mcqueen_blur)
+    cv2.imshow(f'my filter, time: {my_filter_time_stop - my_filter_time_start}', mcqueen_stripes)
     cv2.waitKey()
 
 
