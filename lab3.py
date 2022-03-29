@@ -1,11 +1,40 @@
 import cv2
 import time
-
-import numpy
+import numpy as np
 
 
 def big_boy_func(value):
     pass
+
+
+def create_kernel(img):
+    col, row = img[1:-1,1:-1].shape
+
+    for y in range(col):
+        if y == 0:
+            continue
+        elif y == col:
+            break
+
+        for x in range(row):
+            if x == 0:
+                continue
+            elif x == row:
+                break
+
+            ul = int(img[y-1, x-1])
+            um = int(img[y-1, x])
+            ur = int(img[y-1, x+1])
+            cl = int(img[y, x-1])
+            cm = int(img[y, x])
+            cr = int(img[y, x+1])
+            ll = int(img[y+1, x-1])
+            lm = int(img[y+1, x])
+            lr = int(img[y+1, x+1])
+            mean_pixel_value = int((ul+um+ur+cl+cm+cr+ll+lm+lr)/9)
+            img[y][x] = mean_pixel_value
+
+    return img
 
 
 def todo_1():
@@ -93,35 +122,7 @@ def todo_3():
 
     # my filter
     my_filter_time_start = time.perf_counter()
-    col, row = mcqueen_stripes[1:-1,1:-1].shape
-
-    print(mcqueen_stripes[1:-1,1:-1].shape)
-    print(col)
-    print(row)
-
-    for y in range(col):
-        if y == 0:
-            continue
-        elif y == col:
-            break
-
-        for x in range(row):
-            if x == 0:
-                continue
-            elif x == row:
-                break
-
-            ul = int(mcqueen_stripes[y-1, x-1])
-            um = int(mcqueen_stripes[y-1, x])
-            ur = int(mcqueen_stripes[y-1, x+1])
-            cl = int(mcqueen_stripes[y, x-1])
-            cm = int(mcqueen_stripes[y, x])
-            cr = int(mcqueen_stripes[y, x+1])
-            ll = int(mcqueen_stripes[y+1, x-1])
-            lm = int(mcqueen_stripes[y+1, x])
-            lr = int(mcqueen_stripes[y+1, x+1])
-            mean_pixel_value = int((ul+um+ur+cl+cm+cr+ll+lm+lr)/9)
-            mcqueen_stripes[y][x] = mean_pixel_value
+    mcqueen_stripes = create_kernel(mcqueen_stripes)
 
     my_filter_time_stop = time.perf_counter()
 
@@ -131,8 +132,9 @@ def todo_3():
     blur_timer_stop = time.perf_counter()
 
     # built-in filter - filter2d
+
     filterTWOd_timer_start = time.perf_counter()
-    mcqueen_filterTWOd = cv2.filter2D(mcqueen_stripes, ddepth=cv2.CV_32F, kernel=(3,3))
+    mcqueen_filterTWOd = cv2.filter2D(mcqueen_stripes, -1, (1))
     filterTWOd_timer_stop = time.perf_counter()
 
     # show outcome
