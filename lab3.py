@@ -118,13 +118,27 @@ def todo_3():
     mcqueen_resize = cv2.resize(mcqueen, (0, 0), fx=0.5, fy=0.5)
     mcqueen_grey = cv2.cvtColor(mcqueen_resize, cv2.COLOR_BGR2GRAY)
     mcqueen_stripes = mcqueen_grey.copy()
-    mcqueen_stripes[:, ::3] = 255
+    # mcqueen_stripes[:, ::3] = 255
 
     # my filter
     my_filter_time_start = time.perf_counter()
     mcqueen_stripes = create_kernel(mcqueen_stripes)
 
     my_filter_time_stop = time.perf_counter()
+
+    # my better filter which doesn't work
+    maklini = mcqueen_grey.copy()
+    maklini[:, ::3] = 255
+
+    col, row = maklini[1:-1, 1:-1].shape
+
+    print(maklini[5:8, 5:8])
+
+    for y in range(col):
+        for x in range(row):
+            kernel = maklini[y-1:y+2, x-1:x+2]
+            new_pixel_value = np.sum(kernel)
+            maklini[y][x] = new_pixel_value
 
     # built-in filter - blur
     blur_timer_start = time.perf_counter()
