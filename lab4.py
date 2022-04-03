@@ -8,6 +8,7 @@ ix, iy = -1, -1
 points1 = []
 #this one is for todo_4()
 pts = []
+i = 0
 
 
 def todo_1():
@@ -104,10 +105,10 @@ def todo_3():
 
 def todo_4():
     def cropper(event, x, y, flag, param):
-        global pts
+        global pts, i
 
         if event == cv2.EVENT_LBUTTONDOWN:
-            pts.append([x, y, ])
+            pts.append([x, y])
             print(f'{pts}')
 
         if len(pts) == 2:
@@ -122,10 +123,11 @@ def todo_4():
             new_img[pts[0][1]:pts[1][1], pts[0][0]:pts[1][0]] = g_thresh
             g_t_img = new_img
 
+            cv2.putText(new_img, f'{i}', (pts[0][0], pts[0][1]), cv2.FONT_HERSHEY_PLAIN, 5, (255,0,0))
             cv2.imshow('image', g_t_img)
 
             pts = []
-
+            i += 1
             cv2.waitKey()
 
     img = cv2.imread(r'pictures\lena.jpg')
