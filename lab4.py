@@ -4,7 +4,10 @@ from matplotlib import pyplot as plt
 
 
 ix, iy = -1, -1
+# this one is for todo_2()
 points1 = []
+#this one is for todo_4()
+pts = []
 
 
 def todo_1():
@@ -99,10 +102,44 @@ def todo_3():
     cv2.waitKey()
 
 
+def todo_4():
+    def cropper(event, x, y, flag, param):
+        global pts
+
+        if event == cv2.EVENT_LBUTTONDOWN:
+            pts.append([x, y, ])
+            print(f'{pts}')
+
+        if len(pts) == 2:
+            cropped_image = img[pts[0][1]:pts[1][1], pts[0][0]:pts[1][0]]
+
+            cropped_image[:, :, 0] = 0
+            cropped_image[:, :, 2] = 0
+            cv2.imshow('cutout', cropped_image)
+
+            g_thresh = cv2.threshold(cropped_image, 100, 255, cv2.THRESH_BINARY)[1]
+            new_img = img.copy()
+            new_img[pts[0][1]:pts[1][1], pts[0][0]:pts[1][0]] = g_thresh
+
+            cv2.imshow('greener', new_img)
+            cv2.waitKey()
+
+    img = cv2.imread(r'pictures\lena.jpg')
+    cv2.namedWindow('image')
+    cv2.setMouseCallback('image', cropper)
+
+    while True:
+        cv2.imshow('image', img)
+
+        if cv2.waitKey() == ord('q'):
+            break
+
+
 def main():
     # todo_1()
     # todo_2()
-    todo_3()
+    # todo_3()
+    todo_4()
 
 
 if __name__ == '__main__':
