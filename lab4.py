@@ -120,8 +120,12 @@ def todo_4():
             g_thresh = cv2.threshold(cropped_image, 100, 255, cv2.THRESH_BINARY)[1]
             new_img = img.copy()
             new_img[pts[0][1]:pts[1][1], pts[0][0]:pts[1][0]] = g_thresh
+            g_t_img = new_img
 
-            cv2.imshow('greener', new_img)
+            cv2.imshow('image', g_t_img)
+
+            pts = []
+
             cv2.waitKey()
 
     img = cv2.imread(r'pictures\lena.jpg')
