@@ -11,9 +11,14 @@ def todo_1():
 
         if event == cv2.EVENT_LBUTTONDOWN:
             ix, iy = x, y
+        elif event == cv2.EVENT_RBUTTONDOWN:
+            ix, iy = x, y
 
         if event == cv2.EVENT_LBUTTONUP:
             cv2.rectangle(img, (ix, iy), (x, y), (0, 0, 255), 3)
+            cv2.imshow('img', img)
+        elif event == cv2.EVENT_RBUTTONUP:
+            cv2.circle(img, (ix, iy), 5, (0, 255, 0), 3)
             cv2.imshow('img', img)
 
     img = cv2.imread(r'pictures\LOGO_PUT_VISION_LAB_MAIN.png')
