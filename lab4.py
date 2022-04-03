@@ -1,8 +1,10 @@
 import cv2
 import numpy as np
+from matplotlib import pyplot as plt
 
 
 ix, iy = -1, -1
+points1 = []
 
 
 def todo_1():
@@ -36,8 +38,71 @@ def todo_1():
     cv2.destroyAllWindows()
 
 
+def todo_2():
+    def straightener(event, x, y, flag, param):
+        global points1
+
+        if event == cv2.EVENT_LBUTTONDOWN:
+            points1.append((x, y))
+            print(f'click {points1}')
+
+        if len(points1) == 4:
+            points1 = np.float32(points1)
+            print(points1)
+            M = cv2.getPerspectiveTransform(points1, points2)
+            dst = cv2.warpPerspective(img, M, (300, 300))
+
+            cv2.imshow('straightened', dst)
+            if cv2.waitKey() == ord('d'):
+                cv2.destroyWindow('straightened')
+                points1 = []
+
+    points2 = np.float32([[0, 0], [300, 0], [0, 300], [300, 300]])
+
+    img = cv2.imread(r'pictures\road.jpg')
+    img = cv2.resize(img, (0, 0), fx=0.3, fy=0.3, )
+    cv2.namedWindow('original')
+    cv2.setMouseCallback('original', straightener)
+
+    while True:
+        cv2.imshow('original', img)
+
+        if cv2.waitKey() == ord('q'):
+            break
+
+    cv2.destroyAllWindows()
+
+
+def todo_3():
+    img = cv2.imread(r'pictures\lena.jpg')
+    # img = cv2.resize(img, (0, 0), fx=0.5, fy=0.5)
+    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray_img_hist = cv2.calcHist([gray_img], [0], None, [256], [0, 256])
+
+    colors = ('b', 'g', 'r')
+
+    for i, col in enumerate(colors):
+        img_hist = cv2.calcHist([img], [i], None, [256], [0, 256])
+        plt.plot(img_hist, color=col)
+        plt.xlim([0, 256])
+
+    plt.plot(gray_img_hist, color='black')
+
+    equ_gray_img = cv2.equalizeHist(gray_img)
+    res_equ_gray_img = np.hstack((gray_img, equ_gray_img))
+
+    equ_gray_img_hist = cv2.calcHist([equ_gray_img], [0], None, [256], [0, 256])
+
+    plt.plot(equ_gray_img_hist, color='orange')
+    plt.show()
+    cv2.imshow('equed', res_equ_gray_img)
+    cv2.waitKey()
+
+
 def main():
-    todo_1()
+    # todo_1()
+    # todo_2()
+    todo_3()
 
 
 if __name__ == '__main__':
