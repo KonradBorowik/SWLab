@@ -9,6 +9,8 @@ points1 = []
 #this one is for todo_4()
 pts = []
 i = 0
+#todo_5()
+mcqueen_pos = []
 
 
 def todo_1():
@@ -119,12 +121,12 @@ def todo_4():
             cv2.imshow('cutout', cropped_image)
 
             g_thresh = cv2.threshold(cropped_image, 100, 255, cv2.THRESH_BINARY)[1]
-            new_img = img.copy()
-            new_img[pts[0][1]:pts[1][1], pts[0][0]:pts[1][0]] = g_thresh
-            g_t_img = new_img
+            # new_img = img.copy()
+            img[pts[0][1]:pts[1][1], pts[0][0]:pts[1][0]] = g_thresh
+            g_t_img = img
 
-            cv2.putText(new_img, f'{i}', (pts[0][0], pts[0][1]), cv2.FONT_HERSHEY_PLAIN, 5, (255,0,0))
-            cv2.imshow('image', g_t_img)
+            cv2.putText(img, f'{i}', (pts[0][0], pts[0][1]), cv2.FONT_HERSHEY_PLAIN, 5, (255,0,0))
+            cv2.imshow('image', img)
 
             pts = []
             i += 1
@@ -141,11 +143,54 @@ def todo_4():
             break
 
 
+def todo_5():
+    mcqueen_pos = []
+    mcqueen = cv2.imread(r'pictures/mcqueen.jpg')
+
+    def input_mcqueen(event, x, y, bla, ble):
+        # global mcqueen_pos
+        if event == cv2.EVENT_LBUTTONDOWN:
+            if len(mcqueen_pos) < 4:
+                mcqueen_pos.append([x, y])
+                print(mcqueen_pos)
+                print(len(mcqueen_pos))
+
+    img = cv2.imread(r'pictures\road.jpg')
+    img = cv2.resize(img, (0, 0), fx=0.3, fy=0.3)
+    cv2.namedWindow('img')
+    cv2.setMouseCallback('img', input_mcqueen)
+
+    mask = np.full_like(mcqueen, 255)
+    points_mcqueen = np.float32([[0, 0], [mcqueen.shape[1], 0], [mcqueen.shape[1], mcqueen.shape[0]], [0, mcqueen.shape[0]]])
+
+    while True:
+        cv2.imshow('img', img)
+        print(len(mcqueen_pos))
+        if len(mcqueen_pos) == 4:
+            # print('sa 4')
+            mcqueen_pos = np.float32(mcqueen_pos)
+            print('zamiana')
+            transform = cv2.getPerspectiveTransform(points_mcqueen, mcqueen_pos)
+            transformed_mcqueen = cv2.warpPerspective(mcqueen, transform, (img.shape[1], img.shape[0]))
+            transformed_mcqueen_mask = cv2.warpPerspective(mask, transform, (img.shape[1], img.shape[0]))
+            print('transformacje')
+            connect = cv2.bitwise_and(img, cv2.bitwise_not(transformed_mcqueen_mask))
+            merge = cv2.add(transformed_mcqueen, connect)
+            print('laczenie')
+            cv2.imshow('img', merge)
+
+        if cv2.waitKey(200) == ord('q'):
+            break
+
+    cv2.destroyAllWindows()
+
+
 def main():
     # todo_1()
     # todo_2()
     # todo_3()
-    todo_4()
+    # todo_4()
+    todo_5()
 
 
 if __name__ == '__main__':
