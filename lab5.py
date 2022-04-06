@@ -52,10 +52,47 @@ def todo_2():
     cv2.destroyAllWindows()
 
 
+def todo_3():
+    shapes = cv2.imread(r'pictures\shapes.jpg')
+    shapes_gray = cv2.cvtColor(shapes, cv2.COLOR_BGR2GRAY)
+    shapes_edges = cv2.Canny(shapes_gray, 50, 150, apertureSize=3)
+
+    lines = cv2.HoughLines(shapes_edges, 1, np.pi / 180, 200)
+
+    lines_p = cv2.HoughLinesP(shapes_edges, 1, np.pi / 180, 100, minLineLength=100, maxLineGap=10)
+
+    circles = cv2.HoughCircles(shapes_gray, cv2.HOUGH_GRADIENT, dp=1, minDist=20, param1=50, param2=40, minRadius=0, maxRadius=150)
+    circles = np.uint16(np.around(circles))
+
+    for line in lines:
+        rho, theta = line[0]
+        a = np.cos(theta)
+        b = np.sin(theta)
+        x0 = a * rho
+        y0 = b * rho
+        x1 = int(x0 + 1000 * (-b))
+        y1 = int(y0 + 1000 * (a))
+        x2 = int(x0 - 1000 * (-b))
+        y2 = int(y0 - 1000 * (a))
+
+        cv2.line(shapes, (x1, y1), (x2, y2), (0, 0, 255), 2)
+
+    for line_p in lines_p:
+        x1, y1, x2, y2 = line_p[0]
+        cv2.line(shapes, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+    for circle in circles[0, :]:
+        # print(circle)
+        cv2.circle(shapes, (circle[0], circle[1]), circle[2], (0, 0, 0), 2)
+
+    cv2.imshow('lines', shapes)
+    cv2.waitKey()
+
 
 def main():
-    todo_1()
+    # todo_1()
     # todo_2()
+    todo_3()
 
 
 if __name__ == '__main__':
