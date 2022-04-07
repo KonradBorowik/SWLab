@@ -89,28 +89,29 @@ def todo_3():
     cv2.waitKey()
 
 
+# fine idea, unfortunately noone pays me
 # def todo_4():
-#     platform = cv2.imread(r'pictures\drone_ship.jpg')
-#     platform_hsv = platform.copy()
-#     platform_hsv = cv2.cvtColor(platform_hsv, cv2.COLOR_BGR2HSV)
-#
-#     lower_yellow = np.array([20, 100, 0], dtype="uint8")
-#     upper_yellow = np.array([40, 255, 255], dtype="uint8")
-#
-#     mask = cv2.inRange(platform_hsv, lower_yellow, upper_yellow)
-#
-#     edges = cv2.Canny(mask, 100, 200, apertureSize=3)
-#     lines_p = cv2.HoughLinesP(edges, 2, np.pi / 180, 100, minLineLength=100, maxLineGap=50)
-#
-#     for line in lines_p:
-#         x1, y1, x2, y2 = line[0]
-#         cv2.line(platform, (x1, y1), (x2, y2), (0, 255, 0), 5)
-#
-#     cv2.imshow('mask', mask)
-#     cv2.imshow('edges', edges)
-#     cv2.imshow('platform', platform)
-#
-#     cv2.waitKey()
+    # platform = cv2.imread(r'pictures\drone_ship.jpg')
+    # platform_hsv = platform.copy()
+    # platform_hsv = cv2.cvtColor(platform_hsv, cv2.COLOR_BGR2HSV)
+    #
+    # lower_yellow = np.array([20, 100, 0], dtype="uint8")
+    # upper_yellow = np.array([40, 255, 255], dtype="uint8")
+    #
+    # mask = cv2.inRange(platform_hsv, lower_yellow, upper_yellow)
+    #
+    # edges = cv2.Canny(mask, 100, 200, apertureSize=3)
+    # lines_p = cv2.HoughLinesP(edges, 2, np.pi / 180, 100, minLineLength=100, maxLineGap=50)
+    #
+    # for line in lines_p:
+    #     x1, y1, x2, y2 = line[0]
+    #     cv2.line(platform, (x1, y1), (x2, y2), (0, 255, 0), 5)
+    #
+    # cv2.imshow('mask', mask)
+    # cv2.imshow('edges', edges)
+    # cv2.imshow('platform', platform)
+    #
+    # cv2.waitKey()
 
 
 def todo_4():
@@ -143,11 +144,47 @@ def todo_4():
     cv2.waitKey()
 
 
+def todo_5():
+    fruits = cv2.imread(r'pictures\fruit.jpg')
+    fruits_hsv = cv2.cvtColor(fruits.copy(), cv2.COLOR_BGR2HSV)
+    fruits_gray = cv2.cvtColor(fruits.copy(), cv2.COLOR_BGR2GRAY)
+
+    fruits_edges = cv2.Canny(fruits_gray, 50, 150)
+
+    circles = cv2.HoughCircles(fruits_edges, cv2.HOUGH_GRADIENT, dp=1, minDist=150, param1=60, param2=45, minRadius=100,
+                               maxRadius=800)
+    circles = np.uint16(np.around(circles))
+    print(circles)
+
+    lower_orange = np.array([10, 0, 0])
+    upper_orange = np.array([30, 255, 255])
+
+    lower_green = np.array([40, 0, 0])
+    upper_green = np.array([60, 255, 255])
+
+    for circle in circles[0, :]:
+        # pixel_probe = cv2.mean((fruits_hsv[circle[1]+15][circle[0]+15])[0])
+        print((fruits_hsv[circle[1]+15][circle[0]+15])[0])
+        if lower_orange[0] < (fruits_hsv[circle[1]+15][circle[0]+15])[0] < upper_orange[0]:
+            cv2.circle(fruits, (circle[0], circle[1]), circle[2] + 10, (0, 165, 255), 5)
+        elif lower_green[0] < (fruits_hsv[circle[1]+15][circle[0]+15])[0] < upper_green[0]:
+            cv2.circle(fruits, (circle[0], circle[1]), circle[2] + 10, (0, 255, 0), 5)
+
+    print(fruits[0][0])
+    print(f'aa: {fruits_hsv[0][0]}')
+
+    cv2.imshow('fruits', fruits)
+    cv2.imshow('edges', fruits_edges)
+    cv2.imshow('hsv', fruits_hsv)
+    cv2.waitKey()
+
+
 def main():
     # todo_1()
     # todo_2()
     # todo_3()
     todo_4()
+    # todo_5()
 
 
 if __name__ == '__main__':
