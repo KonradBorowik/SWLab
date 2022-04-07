@@ -121,12 +121,20 @@ def todo_4():
     thresh_platform = cv2.threshold(gray_platform, 180, 255, cv2.THRESH_BINARY)[1]
     edges_platfrom = cv2.Canny(thresh_platform, 50, 150)
 
-    lines_platform = cv2.HoughLinesP(edges_platfrom, 2, np.pi / 180, 100, minLineLength=180, maxLineGap=30)
-    print(lines_platform)
+    lines_platform = cv2.HoughLinesP(edges_platfrom, 2, np.pi / 180, 120, minLineLength=180, maxLineGap=30)
+    # print(lines_platform)
+
+    apexes = []
 
     for line in lines_platform:
         x1, y1, x2, y2 = line[0]
         cv2.line(platform, (x1, y1), (x2, y2), (0, 255, 0), 5)
+
+        apexes.append([x1, y1])
+        apexes.append([x2, y2])
+
+    cv2.line(platform, apexes[0], apexes[2], (0, 255, 0), 5)
+    cv2.line(platform, apexes[1], apexes[3], (0, 255, 0), 5)
 
     cv2.imshow('gray', gray_platform)
     cv2.imshow('thresh', thresh_platform)
