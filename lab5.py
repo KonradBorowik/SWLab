@@ -89,10 +89,57 @@ def todo_3():
     cv2.waitKey()
 
 
+# def todo_4():
+#     platform = cv2.imread(r'pictures\drone_ship.jpg')
+#     platform_hsv = platform.copy()
+#     platform_hsv = cv2.cvtColor(platform_hsv, cv2.COLOR_BGR2HSV)
+#
+#     lower_yellow = np.array([20, 100, 0], dtype="uint8")
+#     upper_yellow = np.array([40, 255, 255], dtype="uint8")
+#
+#     mask = cv2.inRange(platform_hsv, lower_yellow, upper_yellow)
+#
+#     edges = cv2.Canny(mask, 100, 200, apertureSize=3)
+#     lines_p = cv2.HoughLinesP(edges, 2, np.pi / 180, 100, minLineLength=100, maxLineGap=50)
+#
+#     for line in lines_p:
+#         x1, y1, x2, y2 = line[0]
+#         cv2.line(platform, (x1, y1), (x2, y2), (0, 255, 0), 5)
+#
+#     cv2.imshow('mask', mask)
+#     cv2.imshow('edges', edges)
+#     cv2.imshow('platform', platform)
+#
+#     cv2.waitKey()
+
+
+def todo_4():
+    platform = cv2.imread(r'pictures\drone_ship.jpg')
+
+    gray_platform = cv2.cvtColor(platform, cv2.COLOR_BGR2GRAY)
+
+    thresh_platform = cv2.threshold(gray_platform, 180, 255, cv2.THRESH_BINARY)[1]
+    edges_platfrom = cv2.Canny(thresh_platform, 50, 150)
+
+    lines_platform = cv2.HoughLinesP(edges_platfrom, 2, np.pi / 180, 100, minLineLength=180, maxLineGap=30)
+    print(lines_platform)
+
+    for line in lines_platform:
+        x1, y1, x2, y2 = line[0]
+        cv2.line(platform, (x1, y1), (x2, y2), (0, 255, 0), 5)
+
+    cv2.imshow('gray', gray_platform)
+    cv2.imshow('thresh', thresh_platform)
+    cv2.imshow('edges', edges_platfrom)
+    cv2.imshow('cel', platform)
+    cv2.waitKey()
+
+
 def main():
     # todo_1()
     # todo_2()
-    todo_3()
+    # todo_3()
+    todo_4()
 
 
 if __name__ == '__main__':
