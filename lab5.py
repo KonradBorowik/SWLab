@@ -157,21 +157,21 @@ def todo_5():
     print(circles)
 
     lower_orange = np.array([10, 0, 0])
-    upper_orange = np.array([30, 255, 255])
+    upper_orange = np.array([20, 255, 255])
 
-    lower_green = np.array([40, 0, 0])
-    upper_green = np.array([60, 255, 255])
+    lower_green = np.array([30, 0, 0])
+    upper_green = np.array([50, 255, 255])
 
     for circle in circles[0, :]:
         # pixel_probe = cv2.mean((fruits_hsv[circle[1]+15][circle[0]+15])[0])
-        print((fruits_hsv[circle[1]+15][circle[0]+15])[0])
+        print(f'hue: {(fruits_hsv[circle[1] + 15][circle[0] + 15])[0]}')
         if lower_orange[0] < (fruits_hsv[circle[1]+15][circle[0]+15])[0] < upper_orange[0]:
             cv2.circle(fruits, (circle[0], circle[1]), circle[2] + 10, (0, 165, 255), 5)
         elif lower_green[0] < (fruits_hsv[circle[1]+15][circle[0]+15])[0] < upper_green[0]:
             cv2.circle(fruits, (circle[0], circle[1]), circle[2] + 10, (0, 255, 0), 5)
 
-    print(fruits[0][0])
-    print(f'aa: {fruits_hsv[0][0]}')
+    print(f'bgr pixel value: {fruits[0][0]}')
+    print(f'hsv pixel value: {fruits_hsv[0][0]}')
 
     cv2.imshow('fruits', fruits)
     cv2.imshow('edges', fruits_edges)
@@ -179,12 +179,41 @@ def todo_5():
     cv2.waitKey()
 
 
+def todo_6():
+    coins = cv2.imread(r'pictures\coins.jpg')
+
+    canny_coins = cv2.Canny(coins, 20, 200)
+
+    circles = cv2.HoughCircles(canny_coins, cv2.HOUGH_GRADIENT, dp=1, minDist=100, param1=70, param2=50, minRadius=10,
+                               maxRadius=110)
+    circles = np.uint16(np.around(circles))
+
+    cash = 0
+
+    for circle in circles[0, :]:
+        # print(circle)
+        if circle[2] > 100:
+            cash += 1
+            cv2.circle(coins, (circle[0], circle[1]), circle[2], (0, 0, 255), 4)
+            cv2.putText(coins, '1PLN', (circle[0], circle[1]), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+        elif 45 < circle[2] < 60:
+            cash += 0.1
+            cv2.circle(coins, (circle[0], circle[1]), circle[2], (255, 0, 0), 4)
+            cv2.putText(coins, '0.1PLN', (circle[0], circle[1]), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+
+    cv2.putText(coins, f'cash = {round(cash, 1)} PLN', (45, 45), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
+    cv2.imshow('coins', coins)
+    cv2.imshow('canny on only coins', canny_coins)
+    cv2.waitKey()
+
+
 def main():
     # todo_1()
     # todo_2()
     # todo_3()
-    todo_4()
+    # todo_4()
     # todo_5()
+    todo_6()
 
 
 if __name__ == '__main__':
