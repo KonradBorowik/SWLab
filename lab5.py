@@ -89,31 +89,6 @@ def todo_3():
     cv2.waitKey()
 
 
-# fine idea, unfortunately noone pays me
-# def todo_4():
-    # platform = cv2.imread(r'pictures\drone_ship.jpg')
-    # platform_hsv = platform.copy()
-    # platform_hsv = cv2.cvtColor(platform_hsv, cv2.COLOR_BGR2HSV)
-    #
-    # lower_yellow = np.array([20, 100, 0], dtype="uint8")
-    # upper_yellow = np.array([40, 255, 255], dtype="uint8")
-    #
-    # mask = cv2.inRange(platform_hsv, lower_yellow, upper_yellow)
-    #
-    # edges = cv2.Canny(mask, 100, 200, apertureSize=3)
-    # lines_p = cv2.HoughLinesP(edges, 2, np.pi / 180, 100, minLineLength=100, maxLineGap=50)
-    #
-    # for line in lines_p:
-    #     x1, y1, x2, y2 = line[0]
-    #     cv2.line(platform, (x1, y1), (x2, y2), (0, 255, 0), 5)
-    #
-    # cv2.imshow('mask', mask)
-    # cv2.imshow('edges', edges)
-    # cv2.imshow('platform', platform)
-    #
-    # cv2.waitKey()
-
-
 def todo_4():
     platform = cv2.imread(r'pictures\drone_ship.jpg')
 
