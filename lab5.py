@@ -203,7 +203,6 @@ def todo_6():
 
     cv2.putText(coins, f'cash = {round(cash, 1)} PLN', (45, 45), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 3)
     cv2.imshow('coins', coins)
-    cv2.imshow('canny on only coins', canny_coins)
     cv2.waitKey()
 
 
