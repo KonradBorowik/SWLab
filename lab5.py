@@ -147,13 +147,14 @@ def todo_4():
 def todo_5():
     fruits = cv2.imread(r'pictures\fruit.jpg')
     fruits_hsv = cv2.cvtColor(fruits.copy(), cv2.COLOR_BGR2HSV)
-    fruits_gray = cv2.cvtColor(fruits.copy(), cv2.COLOR_BGR2GRAY)
+    # fruits_gray = cv2.cvtColor(fruits.copy(), cv2.COLOR_BGR2GRAY)
 
-    fruits_edges = cv2.Canny(fruits_gray, 50, 150)
+    fruits_edges = cv2.Canny(fruits, 50, 150)
 
-    circles = cv2.HoughCircles(fruits_edges, cv2.HOUGH_GRADIENT, dp=1, minDist=150, param1=60, param2=45, minRadius=100,
-                               maxRadius=800)
+    circles = cv2.HoughCircles(fruits_edges, cv2.HOUGH_GRADIENT, dp=1, minDist=150, param1=50, param2=20, minRadius=100,
+                               maxRadius=150)
     circles = np.uint16(np.around(circles))
+
     print(circles)
 
     lower_orange = np.array([10, 0, 0])
@@ -163,19 +164,17 @@ def todo_5():
     upper_green = np.array([50, 255, 255])
 
     for circle in circles[0, :]:
-        # pixel_probe = cv2.mean((fruits_hsv[circle[1]+15][circle[0]+15])[0])
-        print(f'hue: {(fruits_hsv[circle[1] + 15][circle[0] + 15])[0]}')
         if lower_orange[0] < (fruits_hsv[circle[1]+15][circle[0]+15])[0] < upper_orange[0]:
             cv2.circle(fruits, (circle[0], circle[1]), circle[2] + 10, (0, 165, 255), 5)
+            cv2.putText(fruits, 'orange', (circle[0], circle[1]), cv2.FONT_HERSHEY_PLAIN, 3, (0, 0, 0), 2)
         elif lower_green[0] < (fruits_hsv[circle[1]+15][circle[0]+15])[0] < upper_green[0]:
             cv2.circle(fruits, (circle[0], circle[1]), circle[2] + 10, (0, 255, 0), 5)
+            cv2.putText(fruits, 'apple', (circle[0], circle[1]), cv2.FONT_HERSHEY_PLAIN, 3, (0, 0, 0), 2)
 
-    print(f'bgr pixel value: {fruits[0][0]}')
-    print(f'hsv pixel value: {fruits_hsv[0][0]}')
+    # print(f'bgr pixel value: {fruits[0][0]}')
+    # print(f'hsv pixel value: {fruits_hsv[0][0]}')
 
     cv2.imshow('fruits', fruits)
-    cv2.imshow('edges', fruits_edges)
-    cv2.imshow('hsv', fruits_hsv)
     cv2.waitKey()
 
 
@@ -211,8 +210,8 @@ def main():
     # todo_2()
     # todo_3()
     # todo_4()
-    # todo_5()
-    todo_6()
+    todo_5()
+    # todo_6()
 
 
 if __name__ == '__main__':
