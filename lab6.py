@@ -30,10 +30,9 @@ def todo_1():
 
     points = np.float32([[resize_not_bad.shape[1], resize_not_bad.shape[0]], [0, resize_not_bad.shape[0]], [resize_not_bad.shape[1], 0], [0, 0]])
     centers = np.float32(centers)
-    print(points)
-    print(centers)
+    print(resize_not_bad.shape)
     transform = cv2.getPerspectiveTransform(centers, points)
-    straightened = cv2.warpPerspective(resize_not_bad, transform, (500, 400))
+    straightened = cv2.warpPerspective(resize_not_bad, transform, (653, 490))
 
     cv2.imshow('color', resize_not_bad)
     cv2.imshow('gray', gray_not_bad)
