@@ -9,7 +9,6 @@ def big_boy_function(*popo):
 def todo_1():
     not_bad = cv2.imread(r'pictures\not_bad.jpg')
     resize_not_bad = cv2.resize(not_bad, (0, 0), fx=0.2, fy=0.2)
-    new_pic = resize_not_bad.copy()
     gray_not_bad = cv2.cvtColor(resize_not_bad, cv2.COLOR_BGR2GRAY)
 
     thresh_not_bad = cv2.threshold(gray_not_bad, 50, 255, cv2.THRESH_BINARY_INV)[1]
@@ -39,7 +38,6 @@ def todo_1():
     transform = cv2.getPerspectiveTransform(centers, points)
     straightened = cv2.warpPerspective(resize_not_bad, transform, (653, 490))
 
-    cv2.imshow('colorasdfga', new_pic)
     cv2.imshow('color', resize_not_bad)
     cv2.imshow('gray', gray_not_bad)
     cv2.imshow('thresh', thresh_not_bad)
