@@ -23,7 +23,7 @@ def task_1():
 def task_2():
     perspective1 = cv2.imread(r'pictures\lab7\perspective-1.bmp', cv2.IMREAD_GRAYSCALE)
     perspective2 = cv2.imread(r'pictures\lab7\perspective-3.bmp', cv2.IMREAD_GRAYSCALE)
-
+    # ORB
     orb : cv2.ORB = cv2.ORB_create()
 
     kp1, des1 = orb.detectAndCompute(perspective1, None)
@@ -43,9 +43,35 @@ def task_2():
     cv2.waitKey()
 
 
+def task_2_1():
+    perspective1 = cv2.imread(r'pictures\lab7\perspective-1.bmp', cv2.IMREAD_GRAYSCALE)
+    perspective2 = cv2.imread(r'pictures\lab7\perspective-3.bmp', cv2.IMREAD_GRAYSCALE)
+
+    # Initiate FAST detector
+    star = cv2.xfeatures2d.StarDetector_create()
+    # detect keypoints
+    kp1 = star.detect(perspective1, None)
+    kp2 = star.detect(perspective2, None)
+
+    # BRIEF
+    brief = cv2.xfeatures2d.BriefDescriptorExtractor_create()
+    kp1, des1 = brief.compute(perspective1, kp1)
+    kp2, des2 = brief.compute(perspective2, kp2)
+    # matcher
+    bf : cv2.BFMatcher = cv2.BFMatcher_create(cv2.NORM_HAMMING, True)
+    matches = bf.match(des1, des2)
+
+    matches = sorted(matches, key=lambda x: x.distance)
+    match = cv2.drawMatches(perspective1, kp1, perspective2, kp2, matches[:10], outImg=None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+
+    cv2.imshow('b_match', match)
+    cv2.waitKey()
+
+
 def main():
     # task_1()
-    task_2()
+    # task_2()
+    task_2_1()
     # ta sk_3()
 
 
