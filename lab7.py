@@ -13,8 +13,6 @@ def task_1():
     orb_keypoints = orb.detect(forward1, None)
     orb_forward1 = cv2.drawKeypoints(forward1, orb_keypoints, None, (0, 0, 255))
 
-    print(cv2.DescriptorMatcher.match([orb, fast]))
-
     cv2.imshow('fast', fast_forward1)
     cv2.imshow('orb', orb_forward1)
     cv2.waitKey()
@@ -68,11 +66,87 @@ def task_2_1():
     cv2.waitKey()
 
 
+def panorama():
+    '''
+    create panorama from two pictures
+    '''
+
+    # read images
+    left = cv2.imread(r'pictures\left.jpg')
+    left = cv2.resize(left, (0, 0), fx=0.6, fy=0.6)
+    left_gray = cv2.cvtColor(left, cv2.COLOR_BGR2GRAY)
+
+    right = cv2.imread(r'pictures\right.jpg')
+    right = cv2.resize(right, (0, 0), fx=0.6, fy=0.6)
+    right_gray = cv2.cvtColor(right, cv2.COLOR_BGR2GRAY)
+
+    # Initiate FAST detector
+    star = cv2.xfeatures2d.StarDetector_create()
+    # detect keypoints
+    kp_l = star.detect(left_gray, None)
+    kp_r = star.detect(right_gray, None)
+
+    # BRIEF
+    brief = cv2.xfeatures2d.BriefDescriptorExtractor_create()
+    kp_l, des_l = brief.compute(left_gray, kp_l)
+    kp_r, des_r = brief.compute(right_gray, kp_r)
+
+    kp1 = []
+    for kp in range(len(kp_l)):
+        kp1.append([int(kp_l[kp].pt[0]), int(kp_l[kp].pt[1])])
+
+    kp2 = []
+    for kp in range(len(kp_r)):
+        kp2.append([int(kp_r[kp].pt[0]), int(kp_r[kp].pt[1])])
+
+    # matching
+    bf : cv2.BFMatcher = cv2.BFMatcher_create(cv2.NORM_HAMMING, crossCheck=True)
+
+    matches = bf.match(des_r, des_l)
+
+    coords_kp_l = []
+    coords_kp_r = []
+    for i in matches:
+        id2 = i.queryIdx
+        id1 = i.trainIdx
+
+        (x, y) = kp1[id1]
+        coords_kp_l.append((x, y))
+        (x, y) = kp2[id2]
+        coords_kp_r.append((x, y))
+
+    coords_kp_r = np.array(coords_kp_r)
+    coords_kp_l = np.array(coords_kp_l)
+
+    # homography
+    H, _ = cv2.findHomography(coords_kp_r, coords_kp_l, cv2.RANSAC, 5.0)
+
+    # Apply panorama correction
+    width = right.shape[1] + left.shape[1]
+    height = right.shape[0] + left.shape[0]
+
+    result = cv2.warpPerspective(right, H, (width, height))
+    result[0:left.shape[0], 0:left.shape[1]] = left
+
+    # drawing on pictures
+    left_kp = cv2.drawKeypoints(left.copy(), kp_l, None, (0, 0, 255))
+    right_kp = cv2.drawKeypoints(right.copy(), kp_r, None, (0, 0, 255))
+
+    matched_keypoints = cv2.drawMatches(right.copy(), kp_r, left.copy(), kp_l, matches, None)
+
+    # showing pictures
+    cv2.imshow('left', left_kp)
+    cv2.imshow('right', right_kp)
+    cv2.imshow('matched keypoints', matched_keypoints)
+    cv2.imshow('panorama', result)
+    cv2.waitKey()
+
+
 def main():
     # task_1()
     # task_2()
-    task_2_1()
-    # ta sk_3()
+    # task_2_1()
+    panorama()
 
 
 if __name__ == "__main__":
