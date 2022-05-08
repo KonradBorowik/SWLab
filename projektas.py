@@ -21,7 +21,15 @@ def concept_1():
 
     img_gray_blurred = cv2.GaussianBlur(img_gray, (3, 3), 0)
     img_canny = cv2.Canny(img_gray_blurred, 15, 30)
-    close = cv2.morphologyEx(img_canny, cv2.MORPH_DILATE, (5, 5))
+
+    kernel = np.ones((5, 5), np.uint8)
+    dilate = cv2.dilate(img_canny, kernel)
+
+    close = cv2.morphologyEx(dilate, cv2.MORPH_CROSS, (5, 5))
+
+    # output = cv2.connectedComponentsWithStats(close, cv2.CV_32S)
+    # (numLabels, labels, stats, centroids) = output
+
     contours, hierarchy = cv2.findContours(close, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     cv2.drawContours(img, contours, -1, (255, 0, 0), thickness=cv2.FILLED)
 
@@ -29,9 +37,13 @@ def concept_1():
     cv2.imshow("blurred", img_gray_blurred)
     cv2.imshow("canny", img_canny)
     cv2.imshow("close", close)
+    cv2.imshow("dilate", dilate)
     cv2.waitKey()
 
 
 if __name__ == "__main__":
     # isolate_white_blocks()
     concept_1()
+
+
+# porównywanie kształtów przy pomocy momentów B)
