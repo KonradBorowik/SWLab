@@ -159,9 +159,9 @@ def todo_3():
 
 
 def main():
-    # todo_1()
+    todo_1()
     # todo_2()
-    todo_3()
+    # todo_3()
 
 
 if __name__ == '__main__':
