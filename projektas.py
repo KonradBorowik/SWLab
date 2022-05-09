@@ -14,24 +14,25 @@ import numpy as np
 #     cv2.waitKey()
 
 
-def brighten_dark_spots():
-    img = cv2.imread(r"pictures\project\img_012.jpg")
-    img = cv2.resize(img, (0, 0), fx=0.2, fy=0.2)
-
-
-
-    cv2.imshow("original", img)
-    cv2.waitKey()
+# def brighten_dark_spots():
+#     img = cv2.imread(r"pictures\project\img_012.jpg")
+#     img = cv2.resize(img, (0, 0), fx=0.2, fy=0.2)
+#
+#     cv2.imshow("original", img)
+#     cv2.waitKey()
 
 
 def concept_1():
+    # read and resize picture
     img = cv2.imread(r"pictures\project\img_016.jpg")
     img = cv2.resize(img, (0, 0), fx=0.2, fy=0.2)
     # img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
+    # apply blur (somehow edges are more likely to be detected)
     img_gray_blurred = cv2.GaussianBlur(img, (5, 5), 0)
+    # get outlines of legos
     img_canny = cv2.Canny(img_gray_blurred, 15, 20, cv2.THRESH_OTSU)
-
+    # close outlines
     kernel_dilate = np.ones((3, 3), np.uint8)
     dilate = cv2.dilate(img_canny, kernel_dilate)
 
@@ -39,15 +40,16 @@ def concept_1():
 
     # output = cv2.connectedComponentsWithStats(erode, cv2.CV_32S)
     # (numLabels, labels, stats, centroids) = output
-
+    # copy of main picture to work with
     image_with_contours = img.copy()
-
+    # get and draw contours
     contours, hierarchy = cv2.findContours(dilate, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cv2.drawContours(image_with_contours, contours, -1, (255, 255, 255), -1)
 
     # step 2: obtain only legos
     thresh_drawn_contours = cv2.threshold(image_with_contours, 254, 255, cv2.THRESH_BINARY)[1]
 
+    # print outcome
     cv2.imshow("original image", img)
     # cv2.imshow("blurred", img_gray_blurred)
     # cv2.imshow("canny", img_canny)
