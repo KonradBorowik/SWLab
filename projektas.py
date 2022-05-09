@@ -40,14 +40,21 @@ def concept_1():
     # output = cv2.connectedComponentsWithStats(erode, cv2.CV_32S)
     # (numLabels, labels, stats, centroids) = output
 
+    image_for_contours = img.copy()
+
     contours, hierarchy = cv2.findContours(dilate, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cv2.drawContours(img, contours, -1, (255, 0, 0), -1)
+    cv2.drawContours(image_for_contours, contours, -1, (255, 255, 255), -1)
+
+    # step 2: obtain only legos
+    
+
 
     cv2.imshow("original image", img)
     cv2.imshow("blurred", img_gray_blurred)
     cv2.imshow("canny", img_canny)
     # cv2.imshow("close", close)
     cv2.imshow("dilate", dilate)
+    cv2.imshow("drawn contours", image_for_contours)
     cv2.waitKey()
 
 
