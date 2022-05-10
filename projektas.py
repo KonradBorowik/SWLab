@@ -22,6 +22,19 @@ import numpy as np
 #     cv2.waitKey()
 
 
+# def brighten_dark_spots(img):
+#     img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+#
+#     for y in range(img_hsv.shape[0]):
+#         for x in range(img_hsv.shape[1]):
+#             if img_hsv[y, x][2] < 80:
+#                 img_hsv[y, x][2] = 150
+#
+#     img_bgr = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)
+#
+#     return img_bgr
+
+
 def concept_1():
     # read and resize picture
     img = cv2.imread(r"pictures\project\img_014.jpg")
