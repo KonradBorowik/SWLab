@@ -33,6 +33,7 @@ import numpy as np
 #     img_bgr = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)
 #
 #     return img_bgr
+from scipy.stats import stats
 
 
 def concept_1():
@@ -51,8 +52,6 @@ def concept_1():
 
     # close = cv2.morphologyEx(dilate, cv2.MORPH_OPEN, (5, 5))
 
-    # output = cv2.connectedComponentsWithStats(erode, cv2.CV_32S)
-    # (numLabels, labels, stats, centroids) = output
     # copy of main picture to work with
     image_with_contours = img.copy()
     # get and draw contours
@@ -61,8 +60,10 @@ def concept_1():
 
     # step 2: obtain only legos
     thresh_drawn_contours = cv2.threshold(image_with_contours, 254, 255, cv2.THRESH_BINARY)[1]
+    # erode few times to remove noise
+    erode = cv2.morphologyEx(thresh_drawn_contours, cv2.MORPH_ERODE, (3, 3), iterations=10)
 
-    gradient = cv2.morphologyEx(thresh_drawn_contours, cv2.MORPH_ERODE, (3, 3), iterations=10)
+    # (numLabels, labels, stats, centroids) = cv2.connectedComponentsWithStats(erode, cv2.CV_32S)
 
     # print outcome
     cv2.imshow("original image", img)
@@ -72,7 +73,7 @@ def concept_1():
     # cv2.imshow("dilate", dilate)
     cv2.imshow("drawn contours", image_with_contours)
     cv2.imshow("threshold", thresh_drawn_contours)
-    cv2.imshow("gradient", gradient)
+    cv2.imshow("gradient", erode)
     cv2.waitKey()
 
 
