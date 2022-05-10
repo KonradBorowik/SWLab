@@ -24,7 +24,7 @@ import numpy as np
 
 def concept_1():
     # read and resize picture
-    img = cv2.imread(r"pictures\project\img_016.jpg")
+    img = cv2.imread(r"pictures\project\img_014.jpg")
     img = cv2.resize(img, (0, 0), fx=0.2, fy=0.2)
     # img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -49,6 +49,8 @@ def concept_1():
     # step 2: obtain only legos
     thresh_drawn_contours = cv2.threshold(image_with_contours, 254, 255, cv2.THRESH_BINARY)[1]
 
+    gradient = cv2.morphologyEx(thresh_drawn_contours, cv2.MORPH_ERODE, (3, 3), iterations=10)
+
     # print outcome
     cv2.imshow("original image", img)
     # cv2.imshow("blurred", img_gray_blurred)
@@ -57,6 +59,7 @@ def concept_1():
     # cv2.imshow("dilate", dilate)
     cv2.imshow("drawn contours", image_with_contours)
     cv2.imshow("threshold", thresh_drawn_contours)
+    cv2.imshow("gradient", gradient)
     cv2.waitKey()
 
 
