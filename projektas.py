@@ -41,9 +41,9 @@ def big_boy_func(x):
     pass
 
 
-def concept2():
+def concept2(img):
     cv2.namedWindow('ctrl', cv2.WINDOW_GUI_EXPANDED)
-    img = cv2.imread(r'pictures\project\img_014.jpg')
+    # img = cv2.imread(r'pictures\project\img_014.jpg')
     resized_img = cv2.resize(img, (0, 0), fy=0.2, fx=0.2)
     # gray = cv2.cvtColor(resized_img, cv2.COLOR_BGR2GRAY)
     # inv = cv2.bitwise_not(gray)
@@ -52,16 +52,16 @@ def concept2():
     # cv2.imshow('inv', inv)
     # cv2.waitKey()
 
-    median = cv2.medianBlur(resized_img, 9)
-    cv2.imshow('median', median)
+    # median = cv2.medianBlur(resized_img, 9)
+    # cv2.imshow('median', median)
 
     # img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-    cv2.createTrackbar('hmin', 'ctrl', 0, 255, big_boy_func)
+    cv2.createTrackbar('hmin', 'ctrl', 0, 179, big_boy_func)
     cv2.createTrackbar('smin', 'ctrl', 0, 255, big_boy_func)
-    cv2.createTrackbar('vmin', 'ctrl', 0, 255, big_boy_func)
-    cv2.createTrackbar('hmax', 'ctrl', 255, 255, big_boy_func)
-    cv2.createTrackbar('smax', 'ctrl', 255, 255, big_boy_func)
+    cv2.createTrackbar('vmin', 'ctrl', 165, 255, big_boy_func)
+    cv2.createTrackbar('hmax', 'ctrl', 179, 179, big_boy_func)
+    cv2.createTrackbar('smax', 'ctrl', 50, 255, big_boy_func)
     cv2.createTrackbar('vmax', 'ctrl', 255, 255, big_boy_func)
 
     # # red
@@ -75,7 +75,7 @@ def concept2():
     #
     # join_low = cv2.bitwise_and(img, img, mask=mask_low)
     # join_up = cv2.bitwise_and(img, img, mask=mask_up)
-    #
+    # #
     # join = cv2.bitwise_or(join_up, join_low)
     #
     # # show image
@@ -84,6 +84,8 @@ def concept2():
     # cv2.waitKey()
     #
     while True:
+        img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
         hmin = cv2.getTrackbarPos('hmin', 'ctrl')
         hmax = cv2.getTrackbarPos('hmax', 'ctrl')
         smin = cv2.getTrackbarPos('smin', 'ctrl')
@@ -95,13 +97,13 @@ def concept2():
         upper = np.array([hmax, smax, vmax])
         # lower = np.array([0, 0, 161])
         # upper = np.array([179, 33, 190])
-        mask = cv2.inRange(median, lower, upper)
+        mask = cv2.inRange(img_hsv, lower, upper)
         # img_and = cv2.bitwise_and(img, img, mask=mask)
 
         # white
         # canny = cv2.Canny(img_and, 30, 50)
 
-        # join = cv2.bitwise_and(img, img, mask=canny)
+        join = cv2.bitwise_and(img, img, mask=mask)
 
         # cv2.imshow("canny", canny)
         # cv2.imshow("join", join)
@@ -109,7 +111,8 @@ def concept2():
         #
         # img_and = cv2.cvtColor(img_and, cv2.COLOR_HSV2BGR)
         # cv2.imshow('aaa', img_and)
-        cv2.imshow('thresh', mask)
+        # mask = cv2.cvtColor(mask, cv2.COLOR_HSV2BGR)
+        cv2.imshow('thresh', join)
 
         if cv2.waitKey(50) == ord('q'):
             break
@@ -243,27 +246,27 @@ def concept4(original_img):
     cv2.imshow('resized', resized_img)
 
     median = cv2.medianBlur(resized_img, 9)
-    cv2.imshow('median', median)
+    # cv2.imshow('median', median)
 
     # trackbars(median)
 
     canny = cv2.Canny(median, 10, 59, cv2.THRESH_OTSU)
-    cv2.imshow('canny', canny)
+    # cv2.imshow('canny', canny)
 
     dilate_kernel = np.ones((5, 5))
     dilate_contours = cv2.morphologyEx(canny, cv2.MORPH_DILATE, dilate_kernel, iterations=2)
-    cv2.imshow('dilate contours', dilate_contours)
+    # cv2.imshow('dilate contours', dilate_contours)
 
     contours, hierarchy = cv2.findContours(dilate_contours, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     drawn_contours = cv2.drawContours(resized_img.copy(), contours, -1, (255, 255, 255), -1)
-    cv2.imshow('contours', drawn_contours)
+    # cv2.imshow('contours', drawn_contours)
 
     # thresh_drawn_contours = cv2.threshold(drawn_contours.copy(), 250, 255, cv2.THRESH_BINARY)[1]
     # cv2.imshow('thresh contours', thresh_drawn_contours)
 
     erode_kernel = np.ones((5, 5), dtype='uint8')
     erode_thresh = cv2.morphologyEx(drawn_contours, cv2.MORPH_ERODE, erode_kernel, iterations=2)
-    cv2.imshow('erode', erode_thresh)
+    # cv2.imshow('erode', erode_thresh)
 
     img_to_clear = cv2.cvtColor(erode_thresh.copy(), cv2.COLOR_BGR2GRAY)
     img_to_clear = cv2.threshold(img_to_clear, 200, 255, cv2.THRESH_BINARY)[1]
@@ -286,11 +289,66 @@ def concept4(original_img):
         if num_pixels > 600:
             mask = cv2.add(mask, label_mask)
 
-    only_legos = cv2.bitwise_and(resized_img, resized_img, mask=mask)
-    cv2.imshow('extracted legos', only_legos)
+    almost_only_legos = cv2.bitwise_and(resized_img, resized_img, mask=mask)
+    cv2.imshow('almost extracted legos', almost_only_legos)
+
+    # exclude table option
+    almost_only_legos_hsv = cv2.cvtColor(almost_only_legos.copy(), cv2.COLOR_BGR2HSV)
+    erode_kernel_for_colors = np.ones([3, 3])
+    # white
+    white_lower = np.array([0, 0, 165])
+    white_upper = np.array([179, 50, 255])
+
+    white = cv2.inRange(almost_only_legos_hsv, white_lower, white_upper)
+    white = cv2.dilate(white, erode_kernel_for_colors)
+    # join = cv2.bitwise_and(almost_only_legos, almost_only_legos, mask=white)
+    # cv2.imshow('only white', join)
+
+    # red
+    red_low_lower = np.array([0, 60, 65])
+    red_low_upper = np.array([10, 255, 255])
+    red_up_lower = np.array([160, 80, 85])
+    red_up_upper = np.array([179, 255, 255])
+
+    red_low_mask = cv2.inRange(almost_only_legos_hsv, red_low_lower, red_low_upper)
+    red_up_mask = cv2.inRange(almost_only_legos_hsv, red_up_lower, red_up_upper)
+
+    red_mask = red_low_mask + red_up_mask
+    red = cv2.dilate(red_mask, erode_kernel_for_colors)
+    # cv2.imshow('red', red)
+
+    # yellow
+    yellow_lower = np.array([10, 80, 90])
+    yellow_upper = np.array([30, 255, 185])
+
+    yellow_mask = cv2.inRange(almost_only_legos_hsv, yellow_lower, yellow_upper)
+    yellow = cv2.dilate(yellow_mask, erode_kernel_for_colors)
+    # yellow = cv2.bitwise_and(almost_only_legos, almost_only_legos, mask=yellow_mask)
+    # cv2.imshow('yellow', yellow)
+
+    # green
+    green_lower = np.array([60, 50, 25])
+    green_upper = np.array([90, 255, 255])
+
+    green_mask = cv2.inRange(almost_only_legos_hsv, green_lower, green_upper)
+    green = cv2.dilate(green_mask, erode_kernel_for_colors)
+    # green = cv2.bitwise_and(almost_only_legos, almost_only_legos, mask=green_mask)
+    # cv2.imshow('green', green)
+
+    # blue
+    blue_lower = np.array([90, 50, 25])
+    blue_upper = np.array([130, 255, 255])
+
+    blue_mask = cv2.inRange(almost_only_legos_hsv, blue_lower, blue_upper)
+    blue = cv2.dilate(blue_mask, erode_kernel_for_colors)
+    # blue = cv2.bitwise_and(almost_only_legos, almost_only_legos, mask=blue_mask)
+    # cv2.imshow('blue', blue)
+
+    all_colors = white + yellow + red + green + blue
+    joined_colors = cv2.bitwise_and(almost_only_legos, almost_only_legos, mask=all_colors)
+    cv2.imshow('fully extracted legos', joined_colors)
 
     cv2.waitKey()
-
 
 if __name__ == "__main__":
     # img, mask = extract_legos()
