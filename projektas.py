@@ -59,10 +59,10 @@ def concept2(img):
 
     cv2.createTrackbar('hmin', 'ctrl', 0, 179, big_boy_func)
     cv2.createTrackbar('smin', 'ctrl', 0, 255, big_boy_func)
-    cv2.createTrackbar('vmin', 'ctrl', 165, 255, big_boy_func)
+    cv2.createTrackbar('vmin', 'ctrl', 161, 255, big_boy_func)
     cv2.createTrackbar('hmax', 'ctrl', 179, 179, big_boy_func)
-    cv2.createTrackbar('smax', 'ctrl', 50, 255, big_boy_func)
-    cv2.createTrackbar('vmax', 'ctrl', 255, 255, big_boy_func)
+    cv2.createTrackbar('smax', 'ctrl', 40, 255, big_boy_func)
+    cv2.createTrackbar('vmax', 'ctrl', 215, 255, big_boy_func)
 
     # # red
     # red_low_lower = np.array([0, 60, 65])
@@ -123,7 +123,7 @@ def concept2(img):
 def extract_legos():
     from scipy.stats import stats
     # read and resize picture
-    img = cv2.imread(r"pictures\project\img_012.jpg")
+    img = cv2.imread(r"pictures\project\img_001.jpg")
     img = cv2.resize(img, (0, 0), fx=0.2, fy=0.2)
     # img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -240,10 +240,10 @@ def trackbars(img):
             break
 
 
-def concept4(original_img):
+def concept4(resized_img):
     # original_img = cv2.imread(r'pictures/project/img_005.jpg')
-    resized_img = cv2.resize(original_img, (0, 0), fx=0.2, fy=0.2)
-    cv2.imshow('resized', resized_img)
+    # resized_img = cv2.resize(original_img, (0, 0), fx=0.2, fy=0.2)
+    # cv2.imshow('resized', resized_img)
 
     median = cv2.medianBlur(resized_img, 9)
     # cv2.imshow('median', median)
@@ -290,14 +290,14 @@ def concept4(original_img):
             mask = cv2.add(mask, label_mask)
 
     almost_only_legos = cv2.bitwise_and(resized_img, resized_img, mask=mask)
-    cv2.imshow('almost extracted legos', almost_only_legos)
+    # cv2.imshow('almost extracted legos', almost_only_legos)
 
     # exclude table option
     almost_only_legos_hsv = cv2.cvtColor(almost_only_legos.copy(), cv2.COLOR_BGR2HSV)
     erode_kernel_for_colors = np.ones([3, 3])
     # white
-    white_lower = np.array([0, 0, 165])
-    white_upper = np.array([179, 50, 255])
+    white_lower = np.array([0, 0, 161])
+    white_upper = np.array([179, 40, 215])
 
     white = cv2.inRange(almost_only_legos_hsv, white_lower, white_upper)
     white = cv2.dilate(white, erode_kernel_for_colors)
@@ -318,8 +318,8 @@ def concept4(original_img):
     # cv2.imshow('red', red)
 
     # yellow
-    yellow_lower = np.array([10, 80, 90])
-    yellow_upper = np.array([30, 255, 185])
+    yellow_lower = np.array([20, 100, 90])
+    yellow_upper = np.array([35, 255, 255])
 
     yellow_mask = cv2.inRange(almost_only_legos_hsv, yellow_lower, yellow_upper)
     yellow = cv2.dilate(yellow_mask, erode_kernel_for_colors)
@@ -346,9 +346,66 @@ def concept4(original_img):
 
     all_colors = white + yellow + red + green + blue
     joined_colors = cv2.bitwise_and(almost_only_legos, almost_only_legos, mask=all_colors)
-    cv2.imshow('fully extracted legos', joined_colors)
+    # cv2.imshow('fully extracted legos', joined_colors)
 
     cv2.waitKey()
+
+    return joined_colors
+
+
+def get_sample_contours(img):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # cv2.imshow('gray', gray)
+
+    thresh = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY)[1]
+    # cv2.imshow('thresh', thresh)
+
+    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    # cv2.drawContours(img, contours[3], -1, (110, 110, 110), thickness=13)
+    # cv2.imshow('original', img)
+
+    # cv2.waitKey()
+
+    return contours
+
+
+def match_blocks(re_test, sample, test):
+    pic = 1
+    shape = 1
+    sam = 1
+    color = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255)]
+    # for t_cnts in test:
+    for t_cnt in test:
+        t_cnt_area = cv2.contourArea(t_cnt)
+        if t_cnt_area < 300:
+            continue
+        match = []
+
+        for s_cnts in sample:
+            match.append(cv2.matchShapes(t_cnt, s_cnts[3], cv2.CONTOURS_MATCH_I3, 0.0))
+
+            sam += 1
+            if sam > 5:
+                print(f'img{pic}: shape{shape}: sample{sam}: {match}')
+
+                min_value = min(match)
+                if match[match.index(min_value)] < 0.2:
+                    cv2.drawContours(re_test, t_cnt, -1, color[match.index(min_value)], -1)
+                sam = 1
+
+
+        shape += 1
+
+        # cv2.imshow('sample', re_sample)
+
+    pic += 1
+
+    cv2.imshow('test', re_test)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
+
+
+
 
 if __name__ == "__main__":
     # img, mask = extract_legos()
@@ -359,9 +416,35 @@ if __name__ == "__main__":
 
     # concept3()
 
-    for i in range(17):
+    sample_contours = []
+    test_contours = []
+
+    # sample_img = cv2.imread('pictures/project/sample/img_001.jpg')
+    # test_img = cv2.imread('pictures/project/img_001.jpg')
+    #
+    # resized_sample = cv2.resize(sample_img, (0, 0), fx=0.2, fy=0.2)
+    # resized_test = cv2.resize(test_img, (0, 0), fx=0.2, fy=0.2)
+    #
+    # extracted_samples = concept4(resized_sample)
+    # extracted_test = concept4(resized_test)
+    #
+    # sample_contours = get_sample_contours(extracted_samples)
+    # test_contours = get_sample_contours(extracted_test)
+    #
+    # match_blocks(resized_sample, resized_test, sample_contours, test_contours)
+
+    #
+    for i in range(5):
+        sample = cv2.imread(f'pictures/project/sample/img_{i + 1:03}.jpg')
+        resized_sample = cv2.resize(sample, (0, 0), fx=0.2, fy=0.2)
+
+        extracted_blocks = concept4(resized_sample)
+        sample_contours.append(get_sample_contours(extracted_blocks))
+
+    for i in range(18):
         img = cv2.imread(f'pictures/project/img_{i+1:03}.jpg')
-        concept4(img)
-
-
-# porównywanie kształtów przy pomocy momentów B)
+        resized_img = cv2.resize(img, (0, 0), fx=0.2, fy=0.2)
+        # concept2(resized_img)
+        extracted_blocks = concept4(resized_img)
+        test_contours = get_sample_contours(extracted_blocks)
+        match_blocks(resized_img, sample_contours, test_contours)
