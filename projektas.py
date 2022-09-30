@@ -1,6 +1,37 @@
 import cv2
 import numpy as np
 from skimage import measure
+import sys
+
+
+def centroid_histogram(clt):
+    # grab the number of different clusters and create a histogram
+    # based on the number of pixels assigned to each cluster
+    numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)
+    (hist, _) = np.histogram(clt.labels_, bins=numLabels)
+    # normalize the histogram, such that it sums to one
+    hist = hist.astype("float")
+    hist /= hist.sum()
+    # return the histogram
+    return hist
+
+
+def plot_colors(hist, centroids):
+    # initialize the bar chart representing the relative frequency
+    # of each of the colors
+    bar = np.zeros((50, 300, 3), dtype="uint8")
+    startX = 0
+    # loop over the percentage of each cluster and the color of
+    # each cluster
+    for (percent, color) in zip(hist, centroids):
+        # plot the relative percentage of each cluster
+        endX = startX + (percent * 300)
+        cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
+                      color.astype("uint8").tolist(), -1)
+        startX = endX
+
+    # return the bar chart
+    return bar
 
 
 # def isolate_white_blocks():
@@ -348,9 +379,18 @@ def concept4(resized_img):
     joined_colors = cv2.bitwise_and(almost_only_legos, almost_only_legos, mask=all_colors)
     # cv2.imshow('fully extracted legos', joined_colors)
 
+    '''more cutting'''
+    thresh_only_legos = cv2.threshold(joined_colors, 1, 255, cv2.THRESH_BINARY)[1]
+
+    erode_kernel = np.ones(3)
+    erode_thresh_only_legos = cv2.morphologyEx(thresh_only_legos, cv2.MORPH_ERODE, erode_kernel, iterations=4)
+
+    joined_colors_eroded = cv2.bitwise_and(almost_only_legos, almost_only_legos, mask=erode_thresh_only_legos[:, :, 0])
+    cv2.imshow('eroded', joined_colors_eroded)
+
     cv2.waitKey()
 
-    return joined_colors
+    return joined_colors_eroded, all_colors
 
 
 def get_sample_contours(img):
@@ -361,48 +401,147 @@ def get_sample_contours(img):
     # cv2.imshow('thresh', thresh)
 
     contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    # cv2.drawContours(img, contours[3], -1, (110, 110, 110), thickness=13)
-    # cv2.imshow('original', img)
+    important_cnts = []
+    for cnt in contours:
+        if cv2.contourArea(cnt) < 1000:
+            continue
 
-    # cv2.waitKey()
+        # epsilon = 0.025 * cv2.arcLength(cnt, True)
+        # approx = cv2.approxPolyDP(cnt, epsilon, True)
 
-    return contours
+        # first_cnts = cv2.drawContours(img.copy(), cnt, -1, (255, 255, 255), thickness=3)
+        second_cnts = cv2.drawContours(img.copy(), [cnt], -1, (255, 255, 255), thickness=1)
+        #
+        # cv2.imshow('original', first_cnts)
+        cv2.imshow('second', second_cnts)
+
+        important_cnts.append(cnt)
+
+        cv2.waitKey()
+
+    return important_cnts
 
 
 def match_blocks(re_test, sample, test):
     pic = 1
     shape = 1
     sam = 1
+    resized_hsv_img = cv2.cvtColor(re_test, cv2.COLOR_BGR2HSV)
+    img_to_draw_on = re_test.copy()
+
     color = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255)]
     # for t_cnts in test:
     for t_cnt in test:
         t_cnt_area = cv2.contourArea(t_cnt)
-        if t_cnt_area < 300:
+        if t_cnt_area < 900:
             continue
         match = []
 
+        cnt_mask = np.zeros(re_test.shape[:2], np.uint8)
+        single_cnt = cv2.drawContours(cnt_mask, [t_cnt], -1, (255, 255, 255), -1)
+        mask_and_img = cv2.bitwise_and(re_test, re_test , mask=single_cnt)
+        mean_pixel_val = cv2.mean(resized_hsv_img, mask=single_cnt)
+        # cv2.imshow('cnt', mask_and_img)
+
+        if -1 < mean_pixel_val[0] < 15 or 160 < mean_pixel_val[0] < 180:
+            block_color = 'red'
+        elif 70 < mean_pixel_val[0] < 85:
+            block_color = 'green'
+        elif 105 < mean_pixel_val[0] < 115:
+            block_color = 'blue'
+        elif 15 < mean_pixel_val[0] < 25:
+            block_color = 'yellow'
+        elif 150 < mean_pixel_val[2]:
+            block_color = 'white'
+        else:
+            block_color = 'mix'
+
+        x, y, w, h = cv2.boundingRect(t_cnt)
+
+        cv2.putText(re_test, block_color, (x + 20, y + 20), cv2.FONT_HERSHEY_PLAIN, 4, 2)
+
         for s_cnts in sample:
+            match.append(cv2.matchShapes(t_cnt, s_cnts[0], cv2.CONTOURS_MATCH_I3, 0.0))
+            match.append(cv2.matchShapes(t_cnt, s_cnts[1], cv2.CONTOURS_MATCH_I3, 0.0))
+            match.append(cv2.matchShapes(t_cnt, s_cnts[2], cv2.CONTOURS_MATCH_I3, 0.0))
             match.append(cv2.matchShapes(t_cnt, s_cnts[3], cv2.CONTOURS_MATCH_I3, 0.0))
+            match.append(cv2.matchShapes(t_cnt, s_cnts[4], cv2.CONTOURS_MATCH_I3, 0.0))
+            match.append(cv2.matchShapes(t_cnt, s_cnts[5], cv2.CONTOURS_MATCH_I3, 0.0))
 
             sam += 1
             if sam > 5:
                 print(f'img{pic}: shape{shape}: sample{sam}: {match}')
 
                 min_value = min(match)
-                if match[match.index(min_value)] < 0.2:
-                    cv2.drawContours(re_test, t_cnt, -1, color[match.index(min_value)], -1)
+                if match[match.index(min_value)] < 0.1:
+                    cv2.drawContours(img_to_draw_on, t_cnt, -1, color[match.index(min_value) // 6], -1)
                 sam = 1
-
 
         shape += 1
 
-        # cv2.imshow('sample', re_sample)
+        cv2.imshow('sample', img_to_draw_on)
 
     pic += 1
 
-    cv2.imshow('test', re_test)
+    cv2.imshow('test', img_to_draw_on)
     cv2.waitKey()
     cv2.destroyAllWindows()
+
+
+def clustering():
+    from sklearn.cluster import KMeans
+    import matplotlib.pyplot as plt
+
+
+    def centroid_histogram(clt):
+        # grab the number of different clusters and create a histogram
+        # based on the number of pixels assigned to each cluster
+        numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)
+        (hist, _) = np.histogram(clt.labels_, bins=numLabels)
+        # normalize the histogram, such that it sums to one
+        hist = hist.astype("float")
+        hist /= hist.sum()
+        # return the histogram
+        return hist
+
+
+    def plot_colors(hist, centroids):
+        # initialize the bar chart representing the relative frequency
+        # of each of the colors
+        bar = np.zeros((50, 300, 3), dtype="uint8")
+        startX = 0
+        # loop over the percentage of each cluster and the color of
+        # each cluster
+        for (percent, color) in zip(hist, centroids):
+            # plot the relative percentage of each cluster
+            endX = startX + (percent * 300)
+            cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
+                          color.astype("uint8").tolist(), -1)
+            startX = endX
+
+        # return the bar chart
+        return bar
+
+    img = cv2.imread(r'pictures/project/img_001.jpg')
+    resized_img = cv2.resize(img, (0, 0), fx=0.2, fy=0.2)
+    resized_img_rgb = cv2.cvtColor(resized_img, cv2.COLOR_BGR2RGB)
+
+    plt.figure()
+    plt.axis("off")
+    plt.imshow(resized_img_rgb)
+
+    reshaped_img = resized_img_rgb.reshape((resized_img_rgb.shape[0] * resized_img_rgb.shape[1], 3))
+
+    clt = KMeans(n_clusters=5)
+    clt.fit(reshaped_img)
+
+    hist = centroid_histogram(clt)
+    bar = plot_colors(hist, clt.cluster_centers_)
+    # show our color bart
+    plt.figure()
+    plt.axis("off")
+    plt.imshow(bar)
+    plt.show()
 
 
 
@@ -412,7 +551,9 @@ if __name__ == "__main__":
     #
     # exclude_table(img)
     # # brighten_dark_spots()
-    # concept2()
+    # original_img = cv2.imread(r'pictures/project/img_007.jpg')
+    # resized_img = cv2.resize(original_img, (0, 0), fx=0.2, fy=0.2)
+    # concept2(resized_img)
 
     # concept3()
 
@@ -438,13 +579,26 @@ if __name__ == "__main__":
         sample = cv2.imread(f'pictures/project/sample/img_{i + 1:03}.jpg')
         resized_sample = cv2.resize(sample, (0, 0), fx=0.2, fy=0.2)
 
-        extracted_blocks = concept4(resized_sample)
+        extracted_blocks, _ = concept4(resized_sample)
         sample_contours.append(get_sample_contours(extracted_blocks))
+        cv2.drawContours(resized_sample, sample_contours[i], -1, (0, 0, 255), 13)
+    #     # cv2.imshow('sample', resized_sample)
+    #     print(f'sample {i}: {sample_contours}')
+    #
+    #     cv2.waitKey()
+    #
+    with open('test3.npy', 'wb') as f:
+        np.save(f, sample_contours, allow_pickle=True)
 
-    for i in range(18):
-        img = cv2.imread(f'pictures/project/img_{i+1:03}.jpg')
-        resized_img = cv2.resize(img, (0, 0), fx=0.2, fy=0.2)
-        # concept2(resized_img)
-        extracted_blocks = concept4(resized_img)
-        test_contours = get_sample_contours(extracted_blocks)
-        match_blocks(resized_img, sample_contours, test_contours)
+    # with open('sample_contours.json', 'w') as outfile:
+    #     json.dump(sample_contours, outfile)
+
+    # for i in range(18):
+    #     img = cv2.imread(f'pictures/project/img_{i+1:03}.jpg')
+    #     resized_img = cv2.resize(img, (0, 0), fx=0.2, fy=0.2)
+    #     # concept2(resized_img)
+    #     extracted_blocks, masks = concept4(resized_img)
+    #     test_contours = get_sample_contours(extracted_blocks)
+    #     match_blocks(resized_img, sample_contours, test_contours)
+
+    # clustering()
